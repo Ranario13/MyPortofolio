@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ranu - Portfolio</title>
+    <title>{{ name }} - Portofolio</title>
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@500;700&display=swap" rel="stylesheet">
@@ -12,18 +12,12 @@
 <body>
     <header class="site-header">
         <div class="container">
-            <p class="brand">Ranu Ario Sulistianto</p>
+            <a href="{% url 'main:show_main' %}" class="brand">{{ name }}</a>
             <div class="navigation">
                 <nav>
-                    <a href="#profile">Profile</a>
-                </nav>
-                <nav>
-                    <a href="#skills">Skills</a>
-                </nav>
-                <nav>
-                    <a href="#experience">Experience</a>
-                </nav>
-                <nav>
+                    <a href="{% url 'main:show_main' %}">Profile</a> 
+                    <a href="#skills">Skills</a>             
+                    <a href="{% url 'main:show_experience' %}">Experience</a>                
                     <a href="#education">Education</a>
                 </nav>
                 <button id="theme-toggle" class="theme-toggle">Dark</button>
@@ -36,22 +30,22 @@
             <div class="container hero-grid">
                 <div class="hero-identity">
                     <p class="hero-kicker">Information Systems &middot; Universitas Indonesia</p>
-                    <h1>Ranu Ario Sulistianto</h1>
+                    <h1>{{ name }}</h1>
                 </div>
                 <div class="hero-photo">
                     <div class="photo-block"></div>
-                    <img class="avatar" src="/static/img/Me foto.jpg" alt="Photo of Ranu">
+                    <img class="avatar" src="/static/img/Me foto.jpg" alt="Photo of {{ name }}">
                 </div>
                 <div class="hero-details">
-                    <p class="bio">Information Systems student at the University of Indonesia with a strong passion for technology, programming, and business. Highly motivated to continuously learn and apply innovative solutions. Eager to contribute through hands-on experience while developing expertise in programming, communication, project management, and collaborative teamwork.</p>
+                    <p class="bio">{{ bio }}</p>
                     <dl class="meta-list">
                         <div class="meta-row">
                             <dt>NPM</dt>
-                            <dd>2506657270</dd>
+                            <dd>{{ npm }}</dd>
                         </div>
                         <div class="meta-row">
                             <dt>Program</dt>
-                            <dd>S1 Sistem Informasi</dd>
+                            <dd>{{ study_program }}</dd>
                         </div>
                     </dl>
                     <div class="social-links">
@@ -128,7 +122,7 @@
 
     <footer class="site-footer">
         <div class="container">
-            <p>&copy; 2026 Ranu Ario Sulistianto. Fakultas Ilmu Komputer, Universitas Indonesia.</p>
+            <p>&copy; 2026 {{ name }}. Fakultas Ilmu Komputer, Universitas Indonesia.</p>
         </div>
     </footer>
 
