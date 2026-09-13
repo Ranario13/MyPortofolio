@@ -1,0 +1,29 @@
+{% extends 'base.html' %}
+
+{% block title %}Skills - {{ name }}{% endblock %}
+
+{% block content %}
+<section class="experience-section" id="skills">
+    <div class="container">
+        <p class="section-kicker">Keahlian dan kompetensi</p>
+        <h1>Skills</h1>
+
+        <div class="experience-grid">
+            {% for skill in skills %}
+                <article class="experience-card">
+                    <span class="experience-category">{{ skill.get_category_display }}</span>
+                    
+                    <h2>{{ skill.name }}</h2>
+                    <p class="experience-description">{{ skill.description }}</p>
+                    
+                    <p class="experience-status">Tingkat Kemahiran: {{ skill.proficiency_level }}%</p>
+                </article>
+            {% empty %}
+                <p class="empty-state">
+                    Belum ada keahlian yang ditambahkan.
+                </p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock content %}
