@@ -2,7 +2,7 @@ from django.test import TestCase
 from django.urls import reverse
 from django.utils import timezone
 
-from main.models import Experience
+from main.models import Experience, Education, Skill 
 
 
 class MainTest(TestCase):
@@ -56,3 +56,58 @@ class MainTest(TestCase):
         self.assertFalse(self.experience.is_ongoing)
         self.assertContains(response, "Selesai")
         self.assertNotContains(response, "Sedang berlangsung")
+
+class EducationTest(TestCase):
+    def setUp(self):
+        self.education = Education.objects.create(
+            institution="Universitas Indonesia",
+            degree="bachelor",
+            start_year=2025,
+            description="Fokus pada rekayasa perangkat lunak."
+        )
+
+    def test_education_url_is_accessible(self):
+        response = self.client.get(reverse("main:show_education"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "education.html")
+
+    def test_education_page_contains_data(self):
+        response = self.client.get(reverse("main:show_education"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.education.institution)
+        self.assertContains(response, "Bachelor Degree (S1)")
+        self.assertContains(response, self.education.description)
+        self.assertContains(response, str(self.education.start_year))
+        self.assertContains(response, "Sedang menempuh pendidikan")
+
+    def test_empty_education_page(self):
+        Education.objects.all().delete()
+        response = self.client.get(reverse("main:show_education"))
+        self.assertContains(response, "Belum ada riwayat pendidikan yang ditambahkan.")
+
+class SkillTest(TestCase):
+    def setUp(self):
+        self.skill = Skill.objects.create(
+            name="Django Framework",
+            category="backend",
+            description="Mampu membuat arsitektur MVT dengan baik.",
+            proficiency_level=85
+        )
+
+    def test_skill_url_is_accessible(self):
+        response = self.client.get(reverse("main:show_skills"))
+        self.assertEqual(response.status_code, 200)
+        self.assertTemplateUsed(response, "skills.html")
+
+    def test_skill_page_contains_data(self):
+        response = self.client.get(reverse("main:show_skills"))
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, self.skill.name)
+        self.assertContains(response, "Back-End Development")
+        self.assertContains(response, self.skill.description)
+        self.assertContains(response, str(self.skill.proficiency_level))
+
+    def test_empty_skill_page(self):
+        Skill.objects.all().delete()
+        response = self.client.get(reverse("main:show_skills"))
+        self.assertContains(response, "Belum ada keahlian yang ditambahkan.")
