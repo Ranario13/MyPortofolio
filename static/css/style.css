@@ -11,6 +11,7 @@
     --accent-dark: #a8442a;
     --line: #e3d9c9;
     --text-muted: #6b6459;
+    --card-bg: #fff;
     --radius: 4px;
 }
 
@@ -20,6 +21,7 @@
     --accent: #a8442a;
     --accent-dark: #d95d39;
     --line: #3a352e;
+    --card-bg: #2c2721;
     --text-muted: #a0998f;
 }
 
@@ -262,7 +264,7 @@ h1, .brand {
 
 .experience-card {
     padding: 1.25rem;
-    background-color: #fff;
+    background-color: var(--card-bg);
     border: 1px solid var(--line);
     border-radius: var(--radius);
 }

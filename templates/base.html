@@ -39,6 +39,12 @@
 
     <script>
         const themeToggle = document.getElementById('theme-toggle');
+        const currentTheme = localStorage.getItem('theme');
+
+        if (currentTheme === 'dark') {
+            document.body.setAttribute('data-theme', 'dark');
+            themeToggle.textContent = 'Light';
+        }
         
         themeToggle.addEventListener('click', () => {
             const isDark = document.body.getAttribute('data-theme') === 'dark';
@@ -46,9 +52,11 @@
             if (isDark) {
                 document.body.removeAttribute('data-theme');
                 themeToggle.textContent = 'Dark';
+                localStorage.setItem('theme', 'light');
             } else {
                 document.body.setAttribute('data-theme', 'dark');
                 themeToggle.textContent = 'Light';
+                localStorage.setItem('theme', 'dark');
             }
         });
     </script>
