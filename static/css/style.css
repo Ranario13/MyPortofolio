@@ -236,38 +236,7 @@ h1, .brand {
     border-top: 1px solid var(--line);
 }
 
-@media (max-width: 600px) {
-    .hero-grid {
-        grid-template-columns: 1fr;
-        grid-template-areas:
-            "identity"
-            "photo"
-            "details";
-    }
-
-    .hero-photo {
-        max-width: 220px;
-    }
-
-    .social-links {
-        justify-content: flex-start;
-    }
-
-    .site-header .container {
-        flex-direction: row;
-        align-items: center; 
-        justify-content: space-around; 
-        gap: 3rem;
-        padding:0.2rem 1.5rem;
-    }
-    .navigation {
-        justify-content: flex-end;
-        align-items: center; 
-        width: 100%; 
-        gap: 1rem;
-    }
-
-    .experience-section {
+.experience-section {
     padding: 4rem 0;
     border-top: 1px solid var(--line);
 }
@@ -320,4 +289,35 @@ h1, .brand {
     font-size: 0.85rem;
     font-weight: 600;
 }
+
+@media (max-width: 600px) {
+    .hero-grid {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "identity"
+            "photo"
+            "details";
+    }
+
+    .hero-photo {
+        max-width: 220px;
+    }
+
+    .social-links {
+        justify-content: flex-start;
+    }
+
+    .site-header .container {
+        flex-direction: row;
+        align-items: center; 
+        justify-content: space-around; 
+        gap: 3rem;
+        padding:0.2rem 1.5rem;
+    }
+    .navigation {
+        justify-content: flex-end;
+        align-items: center; 
+        width: 100%; 
+        gap: 1rem;
+    }
 }
