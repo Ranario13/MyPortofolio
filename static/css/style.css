@@ -310,16 +310,22 @@ h1, .brand {
     }
 
     .site-header .container {
-        flex-direction: row;
-        align-items: center; 
-        justify-content: space-around; 
-        gap: 3rem;
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
         padding:0.2rem 1.5rem;
     }
     .navigation {
-        justify-content: flex-end;
-        align-items: center; 
-        width: 100%; 
+        flex-direction: column;
+        align-items: center;
         gap: 1rem;
+        width: 100%;
+    }
+
+    .navigation nav {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.8rem 1.5rem;
     }
 }
