@@ -17,3 +17,28 @@ Saya memanfaatkan AI secara bertahap sesuai kebutuhan pengerjaan, seperti menany
 Bagian yang dibantu:
 - Pembuatan fungsi tombol dark mode
 - Membantu menemukan penyebab dan solusi ketika warna latar header terpotong serta efek glow pada menu navigasi tidak berjalan sesuai keinginan.
+
+
+### Tugas 2
+
+1. Alur mulai dari permintaan yang diterima proyek hingga data ditampilkan pada browser:
+- Pengguna mengetik URL atau mengklik tautan di browser, yang mengirimkan HTTP Request ke server Django.
+- Django pertama kali melihat file urls.py tingkat proyek. File ini akan meneruskan URL dengan awalan tertentu ke aplikasi yang tepat
+- Permintaan diteruskan ke urls.py milik aplikasi main. File ini mencocokkan pola URL dan memanggil fungsi View yang sesuai.
+- Fungsi di dalam views.py menerima permintaan. View bertugas mengambil data dari database dengan memanggil Model.
+- Model (models.py) berinteraksi langsung dengan database untuk mengambil data riwayat pendidikan yang diminta, lalu mengembalikannya ke View dalam bentuk objek Python.
+- View membungkus data tersebut ke dalam sebuah variabel dan mengirimkannya ke template. Template kemudian merender data dinamis tersebut menggunakan Django Template Language (DTL) ke dalam struktur HTML dasar. HTML yang sudah matang ini kemudian dikembalikan oleh View sebagai HTTP Response ke browser pengguna.
+
+2. Jika data ditulis langsung di HTML, setiap kali kita ingin menambah pengalaman atau menghapus proyek lama, kita harus membuka, membaca, dan mengubah kode sumber secara manual. Dengan model, data dipisahkan dari struktur tampilan. Kita dapat mengedit data dengan mudah melalui antarmuka visual seperti Django Admin tanpa perlu menyentuh atau merusak kode HTML. Terlebih lagi, jika kita memiliki banyak (misal 100) data proyek, menuliskannya di HTML akan membuat file menjadi sangat panjang dan sulit dikelola. Dengan Model, template hanya perlu menulis satu blok desain HTML yang kemudian diulang secara otomatis ({% for project in projects %}) menggunakan perulangan. Model juga memungkinkan kita untuk melakukan manipulasi data tingkat lanjut, seperti mengurutkan proyek dari yang terbaru, atau melakukan pencarian dan filter data sebelum dikirim ke pengguna.
+
+3. makemigrations, berfungsi untuk mendeteksi setiap perubahan yang kita ketik di file models.py dan mencatat perubahan tersebut ke dalam sebuah file migrasi baru. Perintah ini belum mengubah database sungguhan.Sedangkan migrate, berfungsi untuk membaca file instruksi/cetak biru yang dibuat oleh makemigrations tadi, lalu menerapkannya secara nyata ke dalam skema database, misalnya membuat tabel baru atau menghapus kolom di database.
+Contoh: Ketika kita sebelumnya mengubah tipe data Primary Key dari Integer menjadi UUIDField, kita harus menjalankan makemigrations agar Django membuat file instruksi tentang pergantian tipe ID tersebut, lalu menjalankan migrate agar tabel di dalam database SQLite kita benar-benar diperbarui menggunakan struktur yang baru.
+
+AI disclosure
+Dalam pengerjaan tugas ini, saya menggunakan Gemini AI sebagai asisten dan teman diskusi untuk membantu memahami arsitektur Django serta merapikan struktur kode dan tampilan website.
+Saya memanfaatkan AI secara bertahap sesuai kebutuhan pengerjaan, seperti meminta penjelasan konsep dasar Model-View-Template (MVT), mencari solusi saat menemukan bug pada tampilan antar halaman, serta mengonsultasikan cara penulisan unit test yang efisien.
+
+Bagian yang dibantu:
+- Pembuatan kerangka awal untuk model database (Education dan Skill)
+- Membantu menemukan penyebab dan solusi perbaikan ketika fitur dark mode tidak berfungsi sebagaimana mestinya
+- Membantu menemukan penyebab dan solusi perbaikan menu navigation pada mobile view

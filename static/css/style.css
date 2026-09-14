@@ -11,6 +11,7 @@
     --accent-dark: #a8442a;
     --line: #e3d9c9;
     --text-muted: #6b6459;
+    --card-bg: #fff;
     --radius: 4px;
 }
 
@@ -20,6 +21,7 @@
     --accent: #a8442a;
     --accent-dark: #d95d39;
     --line: #3a352e;
+    --card-bg: #2c2721;
     --text-muted: #a0998f;
 }
 
@@ -236,38 +238,7 @@ h1, .brand {
     border-top: 1px solid var(--line);
 }
 
-@media (max-width: 600px) {
-    .hero-grid {
-        grid-template-columns: 1fr;
-        grid-template-areas:
-            "identity"
-            "photo"
-            "details";
-    }
-
-    .hero-photo {
-        max-width: 220px;
-    }
-
-    .social-links {
-        justify-content: flex-start;
-    }
-
-    .site-header .container {
-        flex-direction: row;
-        align-items: center; 
-        justify-content: space-around; 
-        gap: 3rem;
-        padding:0.2rem 1.5rem;
-    }
-    .navigation {
-        justify-content: flex-end;
-        align-items: center; 
-        width: 100%; 
-        gap: 1rem;
-    }
-
-    .experience-section {
+.experience-section {
     padding: 4rem 0;
     border-top: 1px solid var(--line);
 }
@@ -293,7 +264,7 @@ h1, .brand {
 
 .experience-card {
     padding: 1.25rem;
-    background-color: #fff;
+    background-color: var(--card-bg);
     border: 1px solid var(--line);
     border-radius: var(--radius);
 }
@@ -320,4 +291,41 @@ h1, .brand {
     font-size: 0.85rem;
     font-weight: 600;
 }
+
+@media (max-width: 600px) {
+    .hero-grid {
+        grid-template-columns: 1fr;
+        grid-template-areas:
+            "identity"
+            "photo"
+            "details";
+    }
+
+    .hero-photo {
+        max-width: 220px;
+    }
+
+    .social-links {
+        justify-content: flex-start;
+    }
+
+    .site-header .container {
+        flex-direction: column;
+        text-align: center;
+        gap: 1rem;
+        padding:0.2rem 1.5rem;
+    }
+    .navigation {
+        flex-direction: column;
+        align-items: center;
+        gap: 1rem;
+        width: 100%;
+    }
+
+    .navigation nav {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 0.8rem 1.5rem;
+    }
 }

@@ -1,0 +1,36 @@
+{% extends 'base.html' %}
+
+{% block title %}Education - {{ name }}{% endblock %}
+
+{% block content %}
+<section class="experience-section" id="education">
+    <div class="container">
+        <p class="section-kicker">Latar belakang akademis</p>
+        <h1>Education</h1>
+
+        <div class="experience-grid">
+            {% for edu in educations %}
+                <article class="experience-card">
+                    <span class="experience-category">{{ edu.get_degree_display }}</span>
+                    
+                    <h2>{{ edu.institution }}</h2>
+                    <p class="experience-description">
+                        <strong>{{ edu.start_year }} - {% if edu.is_ongoing %}Sekarang{% else %}{{ edu.end_year }}{% endif %}</strong><br>
+                        {{ edu.description }}
+                    </p>
+
+                    {% if edu.is_ongoing %}
+                        <p class="experience-status">Sedang menempuh pendidikan</p>
+                    {% else %}
+                        <p class="experience-status">Lulus</p>
+                    {% endif %}
+                </article>
+            {% empty %}
+                <p class="empty-state">
+                    Belum ada riwayat pendidikan yang ditambahkan.
+                </p>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endblock content %}
