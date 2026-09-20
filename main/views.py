@@ -53,8 +53,8 @@ def show_projects(request):
     }
     return render(request, "project.html", context)
 
-def delete_project(request, project_id):
-    project = get_object_or_404(Project, pk=project_id)
+def delete_project(request, id):
+    project = get_object_or_404(Project, pk=id)
 
     if request.method == "POST":
         project.delete()
