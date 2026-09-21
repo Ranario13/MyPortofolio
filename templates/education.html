@@ -6,13 +6,20 @@
 <section class="experience-section" id="education">
     <div class="container">
         <p class="section-kicker">Latar belakang akademis</p>
-        <h1>Education</h1>
+
+        <div class="project-header">
+            <h1>Education</h1>
+            <div style="display: flex; gap: 0.5rem; align-items: center;">
+                <a href="{% url 'main:create_education' %}" class="button project-add-button">
+                    <span>+</span> Tambah Pendidikan
+                </a>
+            </div>
+        </div>
 
         <div class="experience-grid">
             {% for edu in educations %}
                 <article class="experience-card">
                     <span class="experience-category">{{ edu.get_degree_display }}</span>
-                    
                     <h2>{{ edu.institution }}</h2>
                     <p class="experience-description">
                         <strong>{{ edu.start_year }} - {% if edu.is_ongoing %}Sekarang{% else %}{{ edu.end_year }}{% endif %}</strong><br>
@@ -24,6 +31,14 @@
                     {% else %}
                         <p class="experience-status">Lulus</p>
                     {% endif %}
+
+                    <div class="project-actions" style="margin-top: 1rem;">
+                        <a href="{% url 'main:update_education' edu.id %}" class="button">Edit</a>
+                        <form action="{% url 'main:delete_education' edu.id %}" method="POST" style="display: inline;">
+                            {% csrf_token %}
+                            <button type="submit" class="button button-danger" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?')">Hapus</button>
+                        </form>
+                    </div>
                 </article>
             {% empty %}
                 <p class="empty-state">

@@ -42,3 +42,33 @@ Bagian yang dibantu:
 - Pembuatan kerangka awal untuk model database (Education dan Skill)
 - Membantu menemukan penyebab dan solusi perbaikan ketika fitur dark mode tidak berfungsi sebagaimana mestinya
 - Membantu menemukan penyebab dan solusi perbaikan menu navigation pada mobile view
+
+
+# Tugas 3
+
+1. Alasan penggunaan ModelForm:
+- ModelForm membuat komponen form secara otomatis berdasarkan skema pada model Django, sehingga tidak perlu menulis elemen input satu per satu secara manual di HTML.
+- Menyediakan validasi data terintegrasi sesuai dengan aturan tipe data, panjang karakter, dan kriteria wajib diisi yang terdaftar pada model.
+- Perubahan struktur pada skema model Django akan langsung terintegrasi ke form tanpa harus mengubah skema tag HTML secara manual.
+
+Alasan diwajibkan menambahkan {% csrf_token %}:
+- Melindungi aplikasi dari serangan Cross-Site Request Forgery, yaitu kondisi di mana situs asing mengeksekusi perintah jahat atas nama pengguna yang sedang terautentikasi.
+- Django membuat kode rahasia unik untuk setiap sesi pengguna. Saat form dikirim via metode POST, Django memverifikasi token dari form tersebut untuk memastikan permintaan benar-benar berasal dari antarmuka aplikasi resmi.
+
+2. JSON memiliki sintaksis yang efisien tanpa menggunakan tag penutup berulang seperti pada XML, sehingga ukuran transfer data lebih kecil dan menghemat penggunaan bandwidth. JSON secara alami memetakan langsung ke struktur objek dan array pada JavaScript, sehingga browser dapat melakukan parsing data jauh lebih cepat tanpa memerlukan mekanisme DOM Parser yang kompleks. Format pasangan key-value pada JSON jauh lebih bersih dan mudah dibaca oleh pengembang dibanding struktur pohon XML yang berbunga-bunga.
+
+3. Alur Pengembalian Data JSON:
+- Klien mengirimkan permintaan HTTP GET ke endpoint URL yang terdaftar di urls.py.
+- Fungsi view mengambil data dari basis data menggunakan Django ORM dalam bentuk objek QuerySet.
+- Fungsi view memuat QuerySet tersebut ke modul serialisasi (misalnya serializers.serialize('json', queryset)) untuk dikonversi menjadi string JSON.
+- String JSON dikembalikan ke klien membungkus HttpResponse dengan header content_type='application/json'.
+- Klien/browser menerima respon string JSON, melakukan deserialization (parsing menjadi objek JavaScript), dan menampilkannya pada halaman web.
+Objek QuerySet pada Django merupakan objek kompleks Python yang tersimpan di dalam memori server. Protokol HTTP hanya dapat mentransfer aliran data berbasis teks atau biner. Serialization bertugas menerjemahkan objek Python yang kompleks tersebut menjadi format string terstruktur (seperti JSON) agar dapat dikirimkan melalui jaringan dan dipahami oleh bahasa pemrograman lain di sisi klien.
+    
+AI disclosure
+Dalam pengerjaan tugas ini, saya menggunakan Gemini AI sebagai asisten diskusi dan pengerjaan untuk membantu memahami refactoring template, pembuatan form, serta pengelolaan data JSON pada Django.
+
+Bagian yang dibantu:
+- Pembuatan ModelForm dan fungsi views untuk operasi CRUD (Create, Read, Update, Delete).
+- Implementasi fitur JSON Data Delivery dan proses deserialization.
+- Penerapan sistem proteksi password mode edit.
