@@ -2,9 +2,39 @@ from django.contrib import messages
 from django.core import serializers
 from django.http import HttpResponse
 from django.shortcuts import get_object_or_404, redirect, render
+from functools import wraps
+from django.conf import settings
 
 from main.models import Experience, Education, Skill, Project
 from main.forms import ProjectForm, ExperienceForm, EducationForm, SkillForm
+
+def admin_required(view_func):
+    @wraps(view_func)
+    def _wrapped_view(request, *args, **kwargs):
+        if not request.session.get("is_admin"):
+            messages.error(request, "Anda harus masuk ke mode admin untuk melakukan aksi ini!")
+            return redirect("main:edit_login")
+        return view_func(request, *args, **kwargs)
+    return _wrapped_view
+
+
+def edit_login(request):
+    if request.method == "POST":
+        password = request.POST.get("password", "")
+        if password == settings.ADMIN_PASSWORD:
+            request.session["is_admin"] = True
+            messages.success(request, "Berhasil masuk ke mode edit!")
+            return redirect("main:show_main")
+        else:
+            messages.error(request, "Password salah!")
+
+    return render(request, "login.html", {"name": "Ranu Ario Sulistianto"})
+
+
+def edit_logout(request):
+    request.session.flush()
+    messages.success(request, "Berhasil keluar dari mode edit.")
+    return redirect("main:show_main")
 
 # main ================================================================================================================
 def show_main(request):
@@ -23,6 +53,7 @@ def show_main(request):
 
 
 # project ============================================================================================================
+@admin_required
 def create_project(request):
     form = ProjectForm(request.POST or None)
 
@@ -53,6 +84,7 @@ def show_projects(request):
     }
     return render(request, "project.html", context)
 
+@admin_required
 def delete_project(request, id):
     project = get_object_or_404(Project, pk=id)
 
@@ -63,6 +95,7 @@ def delete_project(request, id):
 
     return redirect("main:show_projects")
 
+@admin_required
 def update_project(request, id):
     project = get_object_or_404(Project, pk=id)
     form = ProjectForm(request.POST or None, instance=project)
@@ -105,6 +138,7 @@ def show_experience(request):
     }
     return render(request, "experience.html", context)
 
+@admin_required
 def create_experience(request):
     form = ExperienceForm(request.POST or None)
 
@@ -119,6 +153,7 @@ def create_experience(request):
     }
     return render(request, "experience_form.html", context)
 
+@admin_required
 def update_experience(request, id):
     experience = get_object_or_404(Experience, pk=id)
     form = ExperienceForm(request.POST or None, instance=experience)
@@ -135,6 +170,7 @@ def update_experience(request, id):
     }
     return render(request, "experience_form.html", context)
 
+@admin_required
 def delete_experience(request, id):
     experience = get_object_or_404(Experience, pk=id)
     if request.method == "POST":
@@ -165,6 +201,7 @@ def show_education(request):
     }
     return render(request, "education.html" , context)
 
+@admin_required
 def create_education(request):
     form = EducationForm(request.POST or None)
 
@@ -179,6 +216,7 @@ def create_education(request):
     }
     return render(request, "education_form.html", context)
 
+@admin_required
 def update_education(request, id):
     education = get_object_or_404(Education, pk=id)
     form = EducationForm(request.POST or None, instance=education)
@@ -195,6 +233,7 @@ def update_education(request, id):
     }
     return render(request, "education_form.html", context)
 
+@admin_required
 def delete_education(request, id):
     education = get_object_or_404(Education, pk=id)
     if request.method == "POST":
@@ -225,6 +264,7 @@ def show_skills(request):
     }
     return render(request, "skills.html", context)
 
+@admin_required
 def create_skill(request):
     form = SkillForm(request.POST or None)
 
@@ -239,6 +279,7 @@ def create_skill(request):
     }
     return render(request, "skills_form.html", context)
 
+@admin_required
 def update_skill(request, id):
     skill = get_object_or_404(Skill, pk=id)
     form = SkillForm(request.POST or None, instance=skill)
@@ -255,7 +296,7 @@ def update_skill(request, id):
     }
     return render(request, "skills_form.html", context)
 
-
+@admin_required
 def delete_skill(request, id):
     skill = get_object_or_404(Skill, pk=id)
     if request.method == "POST":

@@ -14,12 +14,16 @@ from pathlib import Path
 import os
 
 from dotenv import load_dotenv
-# Load environment variables from .env file
-load_dotenv()
+
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load environment variables from .env file
+load_dotenv(BASE_DIR / '.env')
+
 ALLOWED_HOSTS = ["localhost", "127.0.0.1", "ranu-ario-myportofolio.pws.cs.ui.ac.id"]
 PRODUCTION = os.getenv('PRODUCTION', 'False').lower() == 'true'
+ADMIN_PASSWORD = os.getenv('ADMIN_PASSWORD')
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/6.1/howto/deployment/checklist/

@@ -20,6 +20,9 @@
                     <a href="{% url 'main:show_experience' %}">Experience</a>
                     <a href="{% url 'main:show_education' %}">Education</a>
                     <a href="{% url 'main:show_projects' %}">Projects</a>
+                    {% if request.session.is_admin %}
+                        <a href="{% url 'main:edit_logout' %}">Logout Edit</a>
+                    {% endif %}
                 </nav>
                 <button id="theme-toggle" class="theme-toggle">Dark</button>
             </div>

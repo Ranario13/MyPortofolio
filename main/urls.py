@@ -1,6 +1,8 @@
 from django.urls import path
 
 from main.views import (
+    edit_login, 
+    edit_logout,
     show_main,
     # project
     show_projects,
@@ -31,6 +33,8 @@ from main.views import (
 app_name = "main"
 
 urlpatterns = [
+    path("login/", edit_login, name="edit_login"),
+    path("logout/", edit_logout, name="edit_logout"),
     path("", show_main, name="show_main"),
 
     # experience
