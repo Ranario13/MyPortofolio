@@ -1,9 +1,12 @@
 from django.urls import path
 
 from main.views import (
-    edit_login, 
-    edit_logout,
     show_main,
+
+    register,
+    login_user,
+    logout_user,
+    toggle_star,
     # project
     show_projects,
     create_project,
@@ -33,9 +36,12 @@ from main.views import (
 app_name = "main"
 
 urlpatterns = [
-    path("login/", edit_login, name="edit_login"),
-    path("logout/", edit_logout, name="edit_logout"),
     path("", show_main, name="show_main"),
+
+    path("register/", register, name="register"),
+    path("login/", login_user, name="login"),
+    path("logout/", logout_user, name="logout"),
+    path("projects/<uuid:project_id>/star/", toggle_star, name="toggle_star"),
 
     # experience
     path("experience/", show_experience, name="show_experience"),
