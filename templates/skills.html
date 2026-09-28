@@ -10,9 +10,11 @@
         <div class="project-header">
             <h1>Skills</h1>
             <div style="display: flex; gap: 0.5rem; align-items: center;">
-                <a href="{% url 'main:create_skill' %}" class="button project-add-button">
-                    <span>+</span> Tambah Skill
-                </a>
+                {% if user.is_superuser %}
+                    <a href="{% url 'main:create_skill' %}" class="button project-add-button">
+                        <span>+</span> Tambah Skill
+                    </a>
+                {% endif %}
             </div>
         </div>
 
@@ -27,11 +29,15 @@
                     <p class="experience-status">Tingkat Kemahiran: {{ skill.proficiency_level }}%</p>
 
                     <div class="project-actions" style="margin-top: 1rem;">
-                        <a href="{% url 'main:update_skill' skill.id %}" class="button">Edit</a>
-                        <form action="{% url 'main:delete_skill' skill.id %}" method="POST" style="display: inline;">
-                            {% csrf_token %}
-                            <button type="submit" class="button button-danger" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?')">Hapus</button>
-                        </form>
+                        {% if is_editor %}
+                            <a href="{% url 'main:update_skill' skill.id %}" class="button">Edit</a>
+                        {% endif %}
+                        {% if user.is_superuser %}
+                            <form action="{% url 'main:delete_skill' skill.id %}" method="POST" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="button button-danger" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?')">Hapus</button>
+                            </form>
+                        {% endif %}
                     </div>
                 </article>
             {% empty %}
