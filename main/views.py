@@ -4,7 +4,7 @@ from django.contrib.auth.forms import AuthenticationForm, UserCreationForm
 from django.contrib.auth.decorators import login_required
 from django.core.exceptions import PermissionDenied
 from django.core import serializers
-from django.http import HttpResponse
+from django.http import HttpResponse, JsonResponse
 from django.shortcuts import get_object_or_404, redirect, render
 from functools import wraps
 from django.conf import settings
@@ -13,6 +13,11 @@ import datetime
 
 from main.models import Experience, Education, Skill, Project
 from main.forms import ProjectForm, ExperienceForm, EducationForm, SkillForm
+
+def is_editor_or_superuser(user):
+    if not user.is_authenticated:
+        return False
+    return user.is_superuser or user.groups.filter(name='Editor').exists()
 
 def admin_required(view_func):
     @wraps(view_func)
