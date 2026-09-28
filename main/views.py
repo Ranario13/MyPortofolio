@@ -73,8 +73,18 @@ def toggle_star(request, project_id):
 
         if request.user in project.starred_by.all():
             project.starred_by.remove(request.user)
+            is_starred = False
         else:
             project.starred_by.add(request.user)
+            is_starred = True
+
+        # Jika request berasal dari Fetch API / AJAX, kembalikan respons JSON
+        if request.headers.get('x-requested-with') == 'XMLHttpRequest' or request.content_type == 'application/json':
+            return JsonResponse({
+                'status': 'success',
+                'is_starred': is_starred,
+                'star_count': project.starred_by.count(),
+            })
 
     return redirect("main:show_projects")
 
