@@ -72,3 +72,14 @@ Bagian yang dibantu:
 - Pembuatan ModelForm dan fungsi views untuk operasi CRUD (Create, Read, Update, Delete).
 - Implementasi fitur JSON Data Delivery dan proses deserialization.
 - Penerapan sistem proteksi password mode edit.
+
+
+# Tugas 4
+
+AI disclosure
+Dalam pengerjaan tugas ini, saya menggunakan Gemini AI sebagai asisten diskusi dan pengerjaan untuk membantu memahami penerapan sistem autentikasi, otorisasi berbasis peran (RBAC), serta interaktivitas halaman pada Django. 
+
+Bagian yang dibantu:
+- Penerapan pembatasan hak akses berbasis peran (Pengunjung, User Biasa, Editor, Superuser) di sisi server dan template.
+- Pembuatan helper function is_editor_or_superuser untuk pengelolaan grup dan permission.
+- Implementasi fitur toggle star secara asynchronous (tanpa reload halaman) menggunakan JavaScript Fetch API / AJAX. 

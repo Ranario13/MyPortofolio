@@ -71,7 +71,8 @@ h1, .brand {
     display: flex;
     justify-content: space-between;
     align-items: center;
-    padding: 1.25rem 1.5rem;
+    padding-top: 0.75rem;
+    padding-bottom: 0.75rem;
 }
 
 /*Navigation*/
@@ -523,21 +524,48 @@ h1, .brand {
 }
 
 .button-star {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.4rem;
-    background: var(--ink);
+    background-color: #f3f4f6;
+    color: #1f2937;
+    border: 1px solid #d1d5db;
+    transition: all 0.2s ease;
 }
 
-.button-star.is-starred {
-    background: var(--accent);
+.button-star .star-count {
+    background-color: rgba(0, 0, 0, 0.1);
+    padding: 0.15rem 0.5rem;
+    border-radius: 9999px;
+    font-size: 0.85em;
+    margin-left: 0.3rem;
 }
 
-.star-count {
-    padding: 0.05rem 0.4rem;
-    border-radius: 999px;
-    background: rgba(255, 255, 255, 0.25);
-    font-size: 0.8rem;
+.button-star.is-starred .star-count {
+    background-color: rgba(255, 255, 255, 0.2);
+    color: #ffffff;
+}
+
+[data-theme="dark"] .button-star {
+    background-color: #2b2b2b;
+    color: #e5e7eb;
+    border-color: #4b5563;
+}
+
+[data-theme="dark"] .button-star .star-count {
+    background-color: rgba(255, 255, 255, 0.15);
+    color: #e5e7eb;
+}
+
+.button-star.is-starred,
+[data-theme="dark"] .button-star.is-starred {
+    background-color: #f59e0b; /* Warna Emas / Gold Amber */
+    color: #451a03;            /* Teks Cokelat Tua agar Kontras & Jelas */
+    border-color: #d97706;
+    font-weight: 600;
+}
+
+.button-star.is-starred .star-count,
+[data-theme="dark"] .button-star.is-starred .star-count {
+    background-color: rgba(69, 26, 3, 0.18); /* Badge angka menyesuaikan warna teks */
+    color: #451a03;
 }
 
 @media (max-width: 600px) {

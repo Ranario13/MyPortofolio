@@ -10,9 +10,11 @@
         <div class="project-header">
             <h1>Education</h1>
             <div style="display: flex; gap: 0.5rem; align-items: center;">
-                <a href="{% url 'main:create_education' %}" class="button project-add-button">
-                    <span>+</span> Tambah Pendidikan
-                </a>
+                {% if user.is_superuser %}
+                    <a href="{% url 'main:create_education' %}" class="button project-add-button">
+                        <span>+</span> Tambah Pendidikan
+                    </a>
+                {% endif %}
             </div>
         </div>
 
@@ -33,11 +35,15 @@
                     {% endif %}
 
                     <div class="project-actions" style="margin-top: 1rem;">
-                        <a href="{% url 'main:update_education' edu.id %}" class="button">Edit</a>
-                        <form action="{% url 'main:delete_education' edu.id %}" method="POST" style="display: inline;">
-                            {% csrf_token %}
-                            <button type="submit" class="button button-danger" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?')">Hapus</button>
-                        </form>
+                        {% if is_editor %}
+                            <a href="{% url 'main:update_education' edu.id %}" class="button">Edit</a>
+                        {% endif %}
+                        {% if user.is_superuser %}
+                            <form action="{% url 'main:delete_education' edu.id %}" method="POST" style="display: inline;">
+                                {% csrf_token %}
+                                <button type="submit" class="button button-danger" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?')">Hapus</button>
+                            </form>
+                        {% endif %}
                     </div>
                 </article>
             {% empty %}
