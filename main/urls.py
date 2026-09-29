@@ -3,6 +3,8 @@ from django.urls import path
 from main.views import (
     show_main,
 
+    create_project_ajax,
+
     register,
     login_user,
     logout_user,
@@ -37,6 +39,8 @@ app_name = "main"
 
 urlpatterns = [
     path("", show_main, name="show_main"),
+
+    path("projects/add-ajax/", create_project_ajax, name="create_project_ajax"),
 
     path("register/", register, name="register"),
     path("login/", login_user, name="login"),
