@@ -52,17 +52,17 @@ class ProjectForm(ModelForm):
                 }
             ),
         }
-        def clean_title(self):
-            title = strip_tags(self.cleaned_data["title"]).strip()
-            if not title:
-                raise ValidationError("Nama proyek tidak boleh hanya berisi tag HTML.")
-            return title
+    def clean_title(self):
+        title = strip_tags(self.cleaned_data["title"]).strip()
+        if not title:
+            raise ValidationError("Nama proyek tidak boleh hanya berisi tag HTML.")
+        return title
 
-        def clean_tech_stack(self):
-            return strip_tags(self.cleaned_data["tech_stack"]).strip()
+    def clean_tech_stack(self):
+        return strip_tags(self.cleaned_data["tech_stack"]).strip()
 
-        def clean_description(self):
-            return strip_tags(self.cleaned_data["description"]).strip()
+    def clean_description(self):
+        return strip_tags(self.cleaned_data["description"]).strip()
 
 
 class ExperienceForm(ModelForm):
@@ -109,6 +109,18 @@ class ExperienceForm(ModelForm):
             ),
         }
 
+    def clean_title(self):
+        title = strip_tags(self.cleaned_data.get("title", "")).strip()
+        if not title:
+            raise ValidationError("Judul / Posisi tidak boleh kosong atau hanya berisi tag HTML.")
+        return title
+
+    def clean_description(self):
+        description = strip_tags(self.cleaned_data.get("description", "")).strip()
+        if not description:
+            raise ValidationError("Deskripsi tidak boleh kosong atau hanya berisi tag HTML.")
+        return description
+
 class EducationForm(ModelForm):
     class Meta:
         model = Education
@@ -153,6 +165,15 @@ class EducationForm(ModelForm):
             ),
         }
 
+    def clean_institution(self):
+        institution = strip_tags(self.cleaned_data.get("institution", "")).strip()
+        if not institution:
+            raise ValidationError("Nama institusi tidak boleh kosong atau hanya berisi tag HTML.")
+        return institution
+
+    def clean_description(self):
+        return strip_tags(self.cleaned_data.get("description", "")).strip()
+
 class SkillForm(ModelForm):
     class Meta:
         model = Skill
@@ -191,3 +212,12 @@ class SkillForm(ModelForm):
                 }
             ),
         }
+        
+    def clean_name(self):
+        name = strip_tags(self.cleaned_data.get("name", "")).strip()
+        if not name:
+            raise ValidationError("Nama keahlian tidak boleh kosong atau hanya berisi tag HTML.")
+        return name
+
+    def clean_description(self):
+        return strip_tags(self.cleaned_data.get("description", "")).strip()
