@@ -16,23 +16,6 @@ from main.models import Experience, Education, Skill, Project
 from main.forms import ProjectForm, ExperienceForm, EducationForm, SkillForm
 
 
-@require_POST
-def create_project_ajax(request):
-    if not request.user.is_superuser:
-        return JsonResponse(
-            {"message": "Hanya pemilik portofolio yang dapat menambahkan proyek."},
-            status=403,
-        )
-
-    form = ProjectForm(request.POST)
-    if form.is_valid():
-        project = form.save()
-        return JsonResponse(
-            {"message": "Proyek berhasil ditambahkan.", "pk": str(project.id)},
-            status=201,
-        )
-
-    return JsonResponse({"errors": form.errors.get_json_data()}, status=400)
 
 def is_editor_or_superuser(user):
     if not user.is_authenticated:
@@ -146,7 +129,6 @@ def create_project(request):
 
 def show_projects(request):
     title_query = request.GET.get("title", "").strip()
-
     context = {
         "name": "Ranu Ario Sulistianto",
         "title_query": title_query,
@@ -218,19 +200,38 @@ def get_projects_json(request):
 
     return JsonResponse(data, safe=False)
 
+@require_POST
+def create_project_ajax(request):
+    if not request.user.is_superuser:
+        return JsonResponse(
+            {"message": "Hanya pemilik portofolio yang dapat menambahkan proyek."},
+            status=403,
+        )
+
+    form = ProjectForm(request.POST)
+    if form.is_valid():
+        project = form.save()
+        return JsonResponse(
+            {"message": "Proyek berhasil ditambahkan.", "pk": str(project.id)},
+            status=201,
+        )
+
+    return JsonResponse({"errors": form.errors.get_json_data()}, status=400)
+
+@require_POST
+def delete_project_ajax(request, id):
+    if not request.user.is_superuser:
+        return JsonResponse({"message": "Akses ditolak."}, status=403)
+    project = get_object_or_404(Project, pk=id)
+    project.delete()
+    return JsonResponse({"message": "Proyek berhasil dihapus secara AJAX!"}, status=200)
+
 
 # experience =========================================================================================================
 def show_experience(request):
-    json_response = get_experience_json(request)
-    experiences = serializers.deserialize(
-        "json",
-        json_response.content.decode("utf-8"),
-    )
-    experiences = [exp.object for exp in experiences]
-
     context = {
         "name": "Ranu Ario Sulistianto",
-        "experience_list": experiences,
+        "form": ExperienceForm(),
         "is_editor": is_editor_or_superuser(request.user),
     }
     return render(request, "experience.html", context)
@@ -287,26 +288,65 @@ def delete_experience(request, id):
     return redirect("main:show_experience")
 
 def get_experience_json(request):
-    experiences = Experience.objects.all()
-    data = serializers.serialize("json", experiences)
-    return HttpResponse(data, content_type="application/json")
+    query = request.GET.get("title", "").strip() or request.GET.get("q", "").strip()
+    experiences = Experience.objects.all().order_by("-started_at")
+
+    if query:
+        experiences = experiences.filter(title__icontains=query)
+
+    data = []
+    for exp in experiences:
+        data.append({
+            "pk": str(exp.id),
+            "fields": {
+                "title": exp.title,
+                "description": exp.description,
+                "category": exp.category,
+                "category_display": exp.get_category_display(),
+                "thumbnail": exp.thumbnail or "",
+                "started_at": exp.started_at.strftime("%d %b %Y") if exp.started_at else "",
+                "ended_at": exp.ended_at.strftime("%d %b %Y") if exp.ended_at else None,
+                "is_ongoing": exp.is_ongoing,
+            }
+        })
+
+    return JsonResponse(data, safe=False)
+
+@require_POST
+def create_experience_ajax(request):
+    if not request.user.is_superuser:
+        return JsonResponse(
+            {"message": "Hanya pemilik portofolio yang dapat menambahkan pengalaman."},
+            status=403,
+        )
+
+    form = ExperienceForm(request.POST)
+    if form.is_valid():
+        exp = form.save()
+        return JsonResponse(
+            {"message": "Pengalaman berhasil ditambahkan!", "pk": str(exp.id)},
+            status=201,
+        )
+
+    return JsonResponse({"errors": form.errors.get_json_data()}, status=400)
+
+@require_POST
+def delete_experience_ajax(request, id):
+    if not request.user.is_superuser:
+        return JsonResponse({"message": "Akses ditolak."}, status=403)
+    experience = get_object_or_404(Experience, pk=id)
+    experience.delete()
+    return JsonResponse({"message": "Pengalaman berhasil dihapus secara AJAX!"}, status=200)
 
 
 # education ==========================================================================================================
 def show_education(request):
-    json_response = get_education_json(request)
-    educations = serializers.deserialize(
-        "json",
-        json_response.content.decode("utf-8"),
-    )
-    educations = [edu.object for edu in educations]
-
     context = {
         "name": "Ranu Ario Sulistianto",
-        "educations": educations,
+        "form": EducationForm(),
         "is_editor": is_editor_or_superuser(request.user),
     }
-    return render(request, "education.html" , context)
+    return render(request, "education.html", context)
 
 @login_required(login_url="/login/")
 def create_education(request):
@@ -360,23 +400,61 @@ def delete_education(request, id):
     return redirect("main:show_education")
 
 def get_education_json(request):
-    educations = Education.objects.all().order_by('-start_year')
-    data = serializers.serialize("json", educations)
-    return HttpResponse(data, content_type="application/json")
+    query = request.GET.get("title", "").strip() or request.GET.get("q", "").strip()
+    educations = Education.objects.all().order_by("-start_year")
+
+    if query:
+        educations = educations.filter(institution__icontains=query)
+
+    data = []
+    for edu in educations:
+        data.append({
+            "pk": str(edu.id),
+            "fields": {
+                "institution": edu.institution,
+                "degree": edu.degree,
+                "degree_display": edu.get_degree_display(),
+                "start_year": edu.start_year,
+                "end_year": edu.end_year,
+                "description": edu.description,
+                "is_ongoing": edu.is_ongoing,
+            }
+        })
+
+    return JsonResponse(data, safe=False)
+
+@require_POST
+def create_education_ajax(request):
+    if not request.user.is_superuser:
+        return JsonResponse(
+            {"message": "Hanya pemilik portofolio yang dapat menambahkan pendidikan."},
+            status=403,
+        )
+
+    form = EducationForm(request.POST)
+    if form.is_valid():
+        edu = form.save()
+        return JsonResponse(
+            {"message": "Data pendidikan berhasil ditambahkan!", "pk": str(edu.id)},
+            status=201,
+        )
+
+    return JsonResponse({"errors": form.errors.get_json_data()}, status=400)
+
+@require_POST
+def delete_education_ajax(request, id):
+    if not request.user.is_superuser:
+        return JsonResponse({"message": "Akses ditolak."}, status=403)
+    education = get_object_or_404(Education, pk=id)
+    education.delete()
+    return JsonResponse({"message": "Data pendidikan berhasil dihapus secara AJAX!"}, status=200)
 
 
 # skill ============================================================================================================
 def show_skills(request):
-    json_response = get_skills_json(request)
-    skills = serializers.deserialize(
-        "json",
-        json_response.content.decode("utf-8"),
-    )
-    skills = [skill.object for skill in skills]
-
     context = {
         "name": "Ranu Ario Sulistianto",
-        "skills": skills,
+        "form": SkillForm(),
         "is_editor": is_editor_or_superuser(request.user),
     }
     return render(request, "skills.html", context)
@@ -433,6 +511,49 @@ def delete_skill(request, id):
     return redirect("main:show_skills")
 
 def get_skills_json(request):
-    skills = Skill.objects.all()
-    data = serializers.serialize("json", skills)
-    return HttpResponse(data, content_type="application/json")
+    query = request.GET.get("title", "").strip() or request.GET.get("q", "").strip()
+    skills = Skill.objects.all().order_by("name")
+
+    if query:
+        skills = skills.filter(name__icontains=query)
+
+    data = []
+    for skill in skills:
+        data.append({
+            "pk": str(skill.id),
+            "fields": {
+                "name": skill.name,
+                "category": skill.category,
+                "category_display": skill.get_category_display(),
+                "description": skill.description,
+                "proficiency_level": skill.proficiency_level,
+            }
+        })
+
+    return JsonResponse(data, safe=False)
+
+@require_POST
+def create_skill_ajax(request):
+    if not request.user.is_superuser:
+        return JsonResponse(
+            {"message": "Hanya pemilik portofolio yang dapat menambahkan keahlian."},
+            status=403,
+        )
+
+    form = SkillForm(request.POST)
+    if form.is_valid():
+        skill = form.save()
+        return JsonResponse(
+            {"message": "Keahlian baru berhasil ditambahkan!", "pk": str(skill.id)},
+            status=201,
+        )
+
+    return JsonResponse({"errors": form.errors.get_json_data()}, status=400)
+
+@require_POST
+def delete_skill_ajax(request, id):
+    if not request.user.is_superuser:
+        return JsonResponse({"message": "Akses ditolak."}, status=403)
+    skill = get_object_or_404(Skill, pk=id)
+    skill.delete()
+    return JsonResponse({"message": "Skill berhasil dihapus secara AJAX!"}, status=200)
