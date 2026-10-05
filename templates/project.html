@@ -8,20 +8,14 @@
             <div class="container">
                 <p class="section-kicker">Karya yang saya bangun</p>
                 <div class="project-header">
-                    <button type="button"
-                            class="button project-add-button"
-                            popovertarget="add-project-modal">
-                        <span aria-hidden="true">+</span>
-                        Tambah Proyek
-                    </button>
                     <h1>Projects</h1>
                     <div style="display: flex; gap: 0.5rem; align-items: center;">
                         {% if user.is_superuser %}
-                            <a href="{% url 'main:create_project' %}"
-                            class="button project-add-button">
-                                <span aria-hidden="true">+</span>
-                                Tambah Proyek
-                            </a>
+                            <button type="button"
+                                    class="button project-add-button"
+                                    popovertarget="add-project-modal">
+                                <span aria-hidden="true">+</span> Tambah Proyek
+                            </button>
                         {% endif %}
                     </div>
                 </div>
