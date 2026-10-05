@@ -83,3 +83,24 @@ Bagian yang dibantu:
 - Penerapan pembatasan hak akses berbasis peran (Pengunjung, User Biasa, Editor, Superuser) di sisi server dan template.
 - Pembuatan helper function is_editor_or_superuser untuk pengelolaan grup dan permission.
 - Implementasi fitur toggle star secara asynchronous (tanpa reload halaman) menggunakan JavaScript Fetch API / AJAX. 
+
+
+# Tugas 5
+
+1. Debouncing adalah teknik pemrograman yang digunakan untuk menunda eksekusi suatu fungsi hingga durasi waktu tertentu berlalu sejak terakhir kali sebuah event dipicu. Tanpa debouncing, setiap kali pengguna mengetik satu karakter pada kolom pencarian, event listener akan langsung merespons dan mengirimkan HTTP request baru ke server. Hal ini menyebabkan beban berlebih pada server (server overload), pemborosan lalu lintas jaringan, serta potensi race condition pada tampilan hasil pencarian. Dengan menerapkan debouncing, permintaan AJAX hanya akan dikirimkan satu kali setelah pengguna benar-benar berhenti mengetik dalam jeda waktu tertentu (misalnya 300 milidetik).
+
+2. Fungsi await ketika menggunakan fetch() adalah untuk menghentikan sementara eksekusi kode di dalam fungsi async hingga proses asinkron mengambil data dari jaringan selesai (Promise resolved) dan mengembalikan objek Response. Jika tidak menggunakan await: Fungsi fetch() akan langsung mengembalikan sebuah objek Promise yang masih berstatus pending, bukan data atau objek Response asli. Kode di baris berikutnya akan terus dieksekusi secara instan tanpa menunggu proses download data selesai. Akibatnya, operasi seperti response.json() akan menghasilkan galat (error) karena dipanggil pada objek Promise yang belum selesai diproses.
+
+3. Serangan XSS (Cross-Site Scripting) adalah kerentanan keamanan web di mana penyerang berhasil menyisipkan skrip berbahaya (biasanya kode JavaScript) ke dalam halaman web yang nantinya dieksekusi oleh peramban (browser) milik pengguna lain.
+
+Penyebab data via AJAX/JavaScript lebih rentan daripada Template Django:
+- Template Django memiliki fitur keamanan bawaan berupa auto-escaping secara otomatis. Setiap kali variabel dirender menggunakan sintaks {{ variable }}, Django mengubah karakter khusus HTML (seperti < menjadi &lt; dan > menjadi &gt;) sehingga skrip tidak dapat berjalan sebagai kode yang dieksekusi peramban.
+- AJAX / JavaScript melakukan manipulasi DOM di sisi klien (client-side). Jika data JSON dari server dimasukkan langsung ke HTML menggunakan properti seperti innerHTML tanpa sanitasi manual, peramban akan mengonstruksi string tersebut sebagai elemen HTML asli. Jika string tersebut memuat kode JavaScript jahat (misalnya <img src="x" onerror="alert('XSS')">), peramban akan langsung mengeksekusi skrip tersebut. Oleh karena itu, pengolahan data via AJAX mewajibkan sanitasi manual seperti penggunaan escapeHtml() atau pemakaian properti .textContent.
+
+AI disclosure
+Dalam pengerjaan tugas ini, saya menggunakan Gemini AI sebagai asisten diskusi dan pengerjaan untuk membantu memahami penerapan interaktivitas AJAX, debouncing, modal form, notifikasi toast, serta perlindungan XSS pada Django.
+
+Bagian yang dibantu:
+- Implementasi pemuatan data secara asynchronous (AJAX GET) menggunakan Fetch API beserta penanganan loading, empty, dan error state.
+- Penerapan fitur pencarian dinamis dengan teknik debouncing untuk mengoptimalkan jumlah permintaan HTTP ke server.
+- Pembuatan form penambahan data via modal dialog dan aksi hapus data secara asynchronous (AJAX POST) lengkap dengan validasi ModelForm, penanganan token CSRF, serta notifikasi toast.

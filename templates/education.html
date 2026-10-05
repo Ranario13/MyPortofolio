@@ -1,4 +1,5 @@
 {% extends 'base.html' %}
+{% load static %}
 
 {% block title %}Education - {{ name }}{% endblock %}
 
@@ -6,52 +7,174 @@
 <section class="experience-section" id="education">
     <div class="container">
         <p class="section-kicker">Latar belakang akademis</p>
-
         <div class="project-header">
             <h1>Education</h1>
             <div style="display: flex; gap: 0.5rem; align-items: center;">
                 {% if user.is_superuser %}
-                    <a href="{% url 'main:create_education' %}" class="button project-add-button">
-                        <span>+</span> Tambah Pendidikan
-                    </a>
+                    <button type="button" class="button project-add-button" popovertarget="add-education-modal">
+                        <span aria-hidden="true">+</span> Tambah Pendidikan
+                    </button>
                 {% endif %}
             </div>
         </div>
 
-        <div class="experience-grid">
-            {% for edu in educations %}
-                <article class="experience-card">
-                    <span class="experience-category">{{ edu.get_degree_display }}</span>
-                    <h2>{{ edu.institution }}</h2>
-                    <p class="experience-description">
-                        <strong>{{ edu.start_year }} - {% if edu.is_ongoing %}Sekarang{% else %}{{ edu.end_year }}{% endif %}</strong><br>
-                        {{ edu.description }}
-                    </p>
+        <form id="education-search-form" class="project-search" style="margin-bottom: 1.5rem;">
+            <input type="search" id="search-input" name="title" placeholder="Cari institusi pendidikan..." class="project-search__input" aria-label="Cari pendidikan">
+            <button type="submit" class="button">Cari</button>
+        </form>
 
-                    {% if edu.is_ongoing %}
-                        <p class="experience-status">Sedang menempuh pendidikan</p>
-                    {% else %}
-                        <p class="experience-status">Lulus</p>
-                    {% endif %}
-
-                    <div class="project-actions" style="margin-top: 1rem;">
-                        {% if is_editor %}
-                            <a href="{% url 'main:update_education' edu.id %}" class="button">Edit</a>
-                        {% endif %}
-                        {% if user.is_superuser %}
-                            <form action="{% url 'main:delete_education' edu.id %}" method="POST" style="display: inline;">
-                                {% csrf_token %}
-                                <button type="submit" class="button button-danger" onclick="return confirm('Apakah Anda yakin ingin menghapus data ini?')">Hapus</button>
-                            </form>
-                        {% endif %}
-                    </div>
-                </article>
-            {% empty %}
-                <p class="empty-state">
-                    Belum ada riwayat pendidikan yang ditambahkan.
-                </p>
-            {% endfor %}
-        </div>
+        <div id="loading" class="empty-state"><p>Memuat riwayat pendidikan...</p></div>
+        <div id="error" class="empty-state hide"><p>Gagal memuat data pendidikan. Silakan coba lagi.</p></div>
+        <div id="empty" class="empty-state hide"><p>Belum ada data pendidikan yang ditambahkan atau ditemukan.</p></div>
+        <div id="education-grid" class="experience-grid hide"></div>
     </div>
 </section>
+
+{% if user.is_superuser %}
+    {% include "components/education_form_modal.html" %}
+{% endif %}
+
+<script>
+    const GET_EDUCATION_ENDPOINT = "{% url 'main:get_education_json' %}";
+    const CREATE_EDUCATION_ENDPOINT = "{% url 'main:create_education_ajax' %}";
+    const IS_SUPERUSER = "{{ user.is_superuser|yesno:'true,false' }}" === "true";
+    const IS_EDITOR = "{{ is_editor|yesno:'true,false' }}" === "true";
+
+    let fetchAbortController;
+    let searchDebounceTimer;
+
+    const loadingState = document.getElementById('loading');
+    const errorState = document.getElementById('error');
+    const emptyState = document.getElementById('empty');
+    const gridContainer = document.getElementById('education-grid');
+    const searchForm = document.getElementById('education-search-form');
+    const searchInput = document.getElementById('search-input');
+    const educationForm = document.getElementById('education-form');
+
+    function displayPageState({ showLoading = false, showError = false, showEmpty = false, showGrid = false }) {
+        loadingState.classList.toggle('hide', !showLoading);
+        errorState.classList.toggle('hide', !showError);
+        emptyState.classList.toggle('hide', !showEmpty);
+        gridContainer.classList.toggle('hide', !showGrid);
+    }
+
+    function buildEducationCard(item) {
+        const edu = item.fields;
+        const id = item.pk;
+        const article = document.createElement('article');
+        article.className = 'experience-card';
+
+        const endYearText = edu.is_ongoing ? 'Sekarang' : escapeHtml(edu.end_year);
+        const statusText = edu.is_ongoing ? 'Sedang menempuh pendidikan' : 'Lulus';
+
+        let actionsHtml = '';
+        if (IS_EDITOR) {
+            const editUrl = "{% url 'main:update_education' '00000000-0000-0000-0000-000000000000' %}".replace('00000000-0000-0000-0000-000000000000', id);
+            actionsHtml += `<a href="${editUrl}" class="button">Edit</a> `;
+        }
+        if (IS_SUPERUSER) {
+            actionsHtml += `<button type="button" onclick="deleteEducationAjax('${id}')" class="button button-danger">Hapus</button>`;
+        }
+
+        article.innerHTML = `
+            <span class="experience-category">${escapeHtml(edu.degree_display)}</span>
+            <h2>${escapeHtml(edu.institution)}</h2>
+            <p class="experience-description">
+                <strong>${escapeHtml(edu.start_year)} - ${endYearText}</strong><br>
+                ${escapeHtml(edu.description)}
+            </p>
+            <p class="experience-status">${statusText}</p>
+            <div class="project-actions" style="margin-top: 1rem;">${actionsHtml}</div>
+        `;
+        return article;
+    }
+
+    async function fetchEducations(searchQuery = '') {
+        if (fetchAbortController) fetchAbortController.abort();
+        fetchAbortController = new AbortController();
+
+        try {
+            displayPageState({ showLoading: true });
+            const url = searchQuery ? `${GET_EDUCATION_ENDPOINT}?title=${encodeURIComponent(searchQuery)}` : GET_EDUCATION_ENDPOINT;
+            const response = await fetch(url, { headers: { 'Accept': 'application/json' }, signal: fetchAbortController.signal });
+            if (!response.ok) throw new Error('Error network');
+
+            const data = await response.json();
+            if (!data || data.length === 0) {
+                displayPageState({ showEmpty: true });
+            } else {
+                gridContainer.innerHTML = '';
+                data.forEach(item => gridContainer.appendChild(buildEducationCard(item)));
+                displayPageState({ showGrid: true });
+            }
+        } catch (err) {
+            if (err.name === 'AbortError') return;
+            displayPageState({ showError: true });
+        }
+    }
+
+    searchInput.addEventListener('input', function() {
+        clearTimeout(searchDebounceTimer);
+        searchDebounceTimer = setTimeout(() => fetchEducations(searchInput.value.trim()), 300);
+    });
+
+    searchForm.addEventListener('submit', function(e) {
+        e.preventDefault();
+        clearTimeout(searchDebounceTimer);
+        fetchEducations(searchInput.value.trim());
+    });
+
+    if (educationForm) {
+        educationForm.addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const submitBtn = educationForm.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+
+            try {
+                const response = await fetch(CREATE_EDUCATION_ENDPOINT, {
+                    method: 'POST',
+                    headers: { 'X-CSRFToken': getCookie('csrftoken') },
+                    body: new FormData(educationForm),
+                });
+                const result = await response.json().catch(() => ({}));
+
+                if (response.ok) {
+                    educationForm.reset();
+                    document.getElementById('add-education-modal').hidePopover();
+                    showToast('Berhasil', result.message || 'Pendidikan berhasil ditambahkan!', 'success');
+                    fetchEducations(searchInput.value.trim());
+                } else {
+                    const errorMsgs = result.errors 
+                        ? Object.values(result.errors).flat().map(err => err.message)
+                        : [result.message || 'Gagal menambahkan data.'];
+                    showToast('Gagal', errorMsgs.join(' '), 'error');
+                }
+            } catch (err) {
+                showToast('Gagal', 'Koneksi ke server terganggu.', 'error');
+            } finally {
+                submitBtn.disabled = false;
+            }
+        });
+    }
+
+    async function deleteEducationAjax(id) {
+        if (!confirm('Hapus data pendidikan ini?')) return;
+        const deleteUrl = "{% url 'main:delete_education_ajax' '00000000-0000-0000-0000-000000000000' %}".replace('00000000-0000-0000-0000-000000000000', id);
+
+        try {
+            const response = await fetch(deleteUrl, { method: 'POST', headers: { 'X-CSRFToken': getCookie('csrftoken') } });
+            const result = await response.json();
+            if (response.ok) {
+                showToast('Dihapus', result.message, 'success');
+                fetchEducations(searchInput.value.trim());
+            } else {
+                showToast('Gagal', result.message || 'Gagal menghapus.', 'error');
+            }
+        } catch (err) {
+            showToast('Gagal', 'Terjadi kesalahan saat menghapus.', 'error');
+        }
+    }
+
+    fetchEducations();
+</script>
 {% endblock content %}
