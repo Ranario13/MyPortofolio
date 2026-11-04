@@ -25,8 +25,19 @@
 
         <div id="loading" class="empty-state"><p>Memuat riwayat pendidikan...</p></div>
         <div id="error" class="empty-state hide"><p>Gagal memuat data pendidikan. Silakan coba lagi.</p></div>
-        <div id="empty" class="empty-state hide"><p>Belum ada data pendidikan yang ditambahkan atau ditemukan.</p></div>
-        <div id="education-grid" class="experience-grid hide"></div>
+        <div id="empty" class="empty-state hide"><p>Belum ada riwayat pendidikan yang ditambahkan.</p></div>
+        <div id="education-grid" class="experience-grid hide">
+            {% for education in educations %}
+                <article class="experience-card">
+                    <span class="experience-category">{{ education.get_degree_display }}</span>
+                    <h2>{{ education.institution }}</h2>
+                    <p class="experience-description"><strong>{{ education.start_year }} - {% if education.is_ongoing %}Sekarang{% else %}{{ education.end_year }}{% endif %}</strong><br>{{ education.description }}</p>
+                    <p class="experience-status">{% if education.is_ongoing %}Sedang menempuh pendidikan{% else %}Lulus{% endif %}</p>
+                </article>
+            {% empty %}
+                <p>Belum ada riwayat pendidikan yang ditambahkan.</p>
+            {% endfor %}
+        </div>
     </div>
 </section>
 

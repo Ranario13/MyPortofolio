@@ -231,6 +231,7 @@ def delete_project_ajax(request, id):
 def show_experience(request):
     context = {
         "name": "Ranu Ario Sulistianto",
+        "experiences": Experience.objects.all().order_by("-started_at"),
         "form": ExperienceForm(),
         "is_editor": is_editor_or_superuser(request.user),
     }
@@ -343,6 +344,7 @@ def delete_experience_ajax(request, id):
 def show_education(request):
     context = {
         "name": "Ranu Ario Sulistianto",
+        "educations": Education.objects.all().order_by("-start_year"),
         "form": EducationForm(),
         "is_editor": is_editor_or_superuser(request.user),
     }
@@ -454,6 +456,7 @@ def delete_education_ajax(request, id):
 def show_skills(request):
     context = {
         "name": "Ranu Ario Sulistianto",
+        "skills": Skill.objects.all().order_by("name"),
         "form": SkillForm(),
         "is_editor": is_editor_or_superuser(request.user),
     }

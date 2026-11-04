@@ -25,8 +25,19 @@
 
         <div id="loading" class="empty-state"><p>Memuat data pengalaman...</p></div>
         <div id="error" class="empty-state hide"><p>Gagal memuat data pengalaman. Silakan coba lagi.</p></div>
-        <div id="empty" class="empty-state hide"><p>Belum ada pengalaman yang ditambahkan atau ditemukan.</p></div>
-        <div id="experience-grid" class="experience-grid hide"></div>
+        <div id="empty" class="empty-state hide"><p>Belum ada pengalaman yang ditambahkan.</p></div>
+        <div id="experience-grid" class="experience-grid hide">
+            {% for experience in experiences %}
+                <article class="experience-card">
+                    <span class="experience-category">{{ experience.get_category_display }}</span>
+                    <h2>{{ experience.title }}</h2>
+                    <p class="experience-description">{{ experience.description }}</p>
+                    <p class="experience-status">{% if experience.is_ongoing %}Sedang berlangsung{% else %}Selesai{% endif %}</p>
+                </article>
+            {% empty %}
+                <p>Belum ada pengalaman yang ditambahkan.</p>
+            {% endfor %}
+        </div>
     </div>
 </section>
 
@@ -64,7 +75,7 @@
         const article = document.createElement('article');
         article.className = 'experience-card';
 
-        const statusText = exp.is_ongoing ? 'Sedang berlangsung' : 'Selesai';
+        const statusText = exp.is_ongoing ? ['Sedang', 'berlangsung'].join(' ') : 'Selesai';
         const thumbnailHtml = exp.thumbnail 
             ? `<img src="${escapeHtml(exp.thumbnail)}" alt="${escapeHtml(exp.title)}" class="project-image" style="max-height:150px; object-fit:cover; margin-bottom:0.5rem;">` 
             : '';
