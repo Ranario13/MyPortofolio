@@ -5,6 +5,7 @@ from main.models import Experience, Project
 
 
 class ExperienceSerializer(serializers.ModelSerializer):
+    category_display = serializers.CharField(source="get_category_display", read_only=True)
     star_count = serializers.SerializerMethodField()
     is_starred = serializers.SerializerMethodField()
 
@@ -12,7 +13,7 @@ class ExperienceSerializer(serializers.ModelSerializer):
         model = Experience
         fields = [
             "id", "title", "description", "category", "thumbnail",
-            "started_at", "ended_at", "star_count", "is_starred",
+            "category_display", "started_at", "ended_at", "star_count", "is_starred",
         ]
         read_only_fields = ["id", "started_at", "star_count", "is_starred"]
 
