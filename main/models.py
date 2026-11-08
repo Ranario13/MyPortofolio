@@ -43,6 +43,9 @@ class Education(models.Model):
     # Menggunakan blank=True, null=True agar bisa dikosongkan jika belum lulus
     end_year = models.IntegerField(blank=True, null=True) 
     description = models.TextField()
+    starred_by = models.ManyToManyField(
+        User, related_name="starred_educations", blank=True
+    )
 
     def __str__(self):
         return f"{self.institution} - {self.get_degree_display()}"

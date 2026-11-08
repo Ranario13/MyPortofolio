@@ -5,7 +5,57 @@ from django.urls import reverse
 from rest_framework import status
 from rest_framework.test import APIClient, APITestCase
 
-from main.models import Experience, Project
+from main.models import Education, Experience, Project
+
+
+class EducationAPITest(APITestCase):
+    def setUp(self):
+        self.owner = User.objects.create_superuser(username="education-owner", password="test-password")
+        self.visitor = User.objects.create_user(username="education-visitor", password="test-password")
+        self.editor = User.objects.create_user(username="education-editor", password="test-password")
+        self.editor.groups.add(Group.objects.create(name="Editor"))
+        self.education = Education.objects.create(
+            institution="Universitas Indonesia", degree="bachelor", start_year=2025,
+            description="Software engineering studies",
+        )
+        self.list_url = reverse("api:education-list")
+        self.detail_url = reverse("api:education-detail", args=[self.education.id])
+        self.star_url = reverse("api:education-star", args=[self.education.id])
+        self.payload = {
+            "institution": "Institut Teknologi Bandung", "degree": "certification",
+            "start_year": 2024, "end_year": 2025, "description": "A useful course",
+        }
+
+    def test_public_search_and_computed_fields(self):
+        response = self.client.get(self.list_url, {"title": "indonesia"})
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertEqual(response.data[0]["degree_display"], "Bachelor Degree (S1)")
+        self.assertTrue(response.data[0]["is_ongoing"])
+        self.assertEqual(response.data[0]["star_count"], 0)
+
+    def test_editor_patch_but_not_create_or_delete(self):
+        self.client.force_authenticate(user=self.editor)
+        self.assertEqual(self.client.patch(self.detail_url, {"institution": "UI"}, format="json").status_code, 200)
+        self.assertEqual(self.client.post(self.list_url, self.payload, format="json").status_code, 403)
+        self.assertEqual(self.client.delete(self.detail_url).status_code, 403)
+        self.assertTrue(Education.objects.filter(pk=self.education.pk).exists())
+
+    def test_owner_create_delete_and_validation(self):
+        self.client.force_authenticate(user=self.owner)
+        response = self.client.post(self.list_url, self.payload, format="json")
+        self.assertEqual(response.status_code, 201)
+        created_id = response.data["id"]
+        self.assertEqual(self.client.delete(reverse("api:education-detail", args=[created_id])).status_code, 204)
+        response = self.client.post(self.list_url, {**self.payload, "institution": "<b> </b>"}, format="json")
+        self.assertEqual(response.status_code, 400)
+
+    def test_guest_user_write_and_star_rules(self):
+        self.assertEqual(self.client.post(self.list_url, self.payload, format="json").status_code, 403)
+        self.assertEqual(self.client.post(self.star_url).status_code, 403)
+        self.client.force_authenticate(user=self.visitor)
+        response = self.client.post(self.star_url)
+        self.assertEqual(response.data["star_count"], 1)
+        self.assertTrue(response.data["is_starred"])
 
 
 class ExperienceAPITest(APITestCase):
