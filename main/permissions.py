@@ -11,6 +11,8 @@ class IsPortfolioOwnerOrReadOnly(BasePermission):
         )
 
 class IsPortfolioOwnerOrEditorOrReadOnly(BasePermission):
+    message = "Only the portfolio owner or an Editor can perform this action."
+
     def has_permission(self, request, view):
         if request.method in SAFE_METHODS:
             return True
