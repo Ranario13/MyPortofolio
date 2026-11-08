@@ -82,6 +82,24 @@ class ExperienceAPITest(APITestCase):
         self.assertEqual(response.data["star_count"], 0)
         self.assertFalse(response.data["is_starred"])
 
+    def test_session_write_requires_csrf_token(self):
+        client = APIClient(enforce_csrf_checks=True)
+        self.assertTrue(client.login(username="experience-owner", password="test-password"))
+        response = client.post(self.list_url, self.payload, format="json")
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(Experience.objects.count(), 1)
+
+    def test_session_write_with_csrf_token_succeeds(self):
+        client = APIClient(enforce_csrf_checks=True)
+        self.assertTrue(client.login(username="experience-owner", password="test-password"))
+        page = client.get(self.list_url, HTTP_ACCEPT="text/html")
+        self.assertEqual(page.status_code, status.HTTP_200_OK)
+        token = client.cookies["csrftoken"].value
+        response = client.post(
+            self.list_url, self.payload, format="json", HTTP_X_CSRFTOKEN=token,
+        )
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+
 
 class ProjectAPITest(APITestCase):
     def setUp(self):
@@ -181,13 +199,16 @@ class ProjectAPITest(APITestCase):
         self.assertEqual(response.data["star_count"], 0)
         self.assertFalse(response.data["is_starred"])
 
-    def test_staff_and_editor_cannot_manage_tutorial_projects(self):
-        self.visitor.is_staff = True
-        self.visitor.save()
+    def test_editor_can_patch_but_cannot_create_or_delete_projects(self):
         self.visitor.groups.add(Group.objects.create(name="Editor"))
         self.client.force_authenticate(user=self.visitor)
         response = self.client.patch(self.detail_url, {"title": "Changed"}, format="json")
-        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.project.refresh_from_db()
+        self.assertEqual(self.project.title, "Changed")
+        self.assertEqual(self.client.post(self.list_url, self.payload, format="json").status_code, 403)
+        self.assertEqual(self.client.delete(self.detail_url).status_code, 403)
+        self.assertTrue(Project.objects.filter(pk=self.project.pk).exists())
 
     def test_wrong_method(self):
         self.client.force_authenticate(user=self.owner)
