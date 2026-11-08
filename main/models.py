@@ -19,6 +19,9 @@ class Experience(models.Model):
     thumbnail = models.URLField(blank=True, null=True)
     started_at = models.DateTimeField(auto_now_add=True)
     ended_at = models.DateTimeField(blank=True, null=True)
+    starred_by = models.ManyToManyField(
+        User, related_name="starred_experiences", blank=True
+    )
     def __str__(self):
         return self.title
     
@@ -40,6 +43,9 @@ class Education(models.Model):
     # Menggunakan blank=True, null=True agar bisa dikosongkan jika belum lulus
     end_year = models.IntegerField(blank=True, null=True) 
     description = models.TextField()
+    starred_by = models.ManyToManyField(
+        User, related_name="starred_educations", blank=True
+    )
 
     def __str__(self):
         return f"{self.institution} - {self.get_degree_display()}"

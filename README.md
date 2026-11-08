@@ -104,3 +104,22 @@ Bagian yang dibantu:
 - Implementasi pemuatan data secara asynchronous (AJAX GET) menggunakan Fetch API beserta penanganan loading, empty, dan error state.
 - Penerapan fitur pencarian dinamis dengan teknik debouncing untuk mengoptimalkan jumlah permintaan HTTP ke server.
 - Pembuatan form penambahan data via modal dialog dan aksi hapus data secara asynchronous (AJAX POST) lengkap dengan validasi ModelForm, penanganan token CSRF, serta notifikasi toast.
+
+# Tugas 6
+
+1. REST (Representational State Transfer) adalah gaya arsitektur untuk layanan jaringan yang menggunakan resource, URL, HTTP method, representasi data, dan status HTTP secara konsisten. JSON saja belum cukup disebut RESTful karena format JSON hanya menjelaskan representasi data; API juga perlu mengikuti prinsip seperti resource yang dapat diidentifikasi, penggunaan method HTTP sesuai semantik, stateless request, dan status response yang tepat. PUT digunakan untuk mengganti representasi resource secara lengkap, sedangkan PATCH digunakan untuk mengubah sebagian field. Contohnya, PUT cocok ketika seluruh data pengalaman dikirim ulang, sementara PATCH cocok ketika hanya judul pengalaman yang diperbarui.
+
+2. Serializer DRF mengubah object atau queryset Django menjadi representasi primitif yang dapat dikirim sebagai JSON, dan melakukan proses sebaliknya ketika menerima input. Serializer juga menjadi tempat validasi field, sanitasi teks, penentuan field read-only, serta pemetaan relasi. Dibanding merakit dictionary manual dengan JsonResponse, ModelSerializer lebih konsisten, mengurangi kode berulang, terintegrasi dengan validasi model, dan mudah digunakan kembali pada endpoint list maupun detail.
+
+3. Autentikasi menentukan siapa pengguna yang mengirim request, sedangkan otorisasi menentukan tindakan apa yang boleh dilakukan pengguna tersebut. Hak akses harus diperiksa di permission class pada server karena tombol yang disembunyikan di template hanya memengaruhi tampilan dan dapat dilewati dengan mengirim request HTTP secara langsung. Pada API ini, pengunjung hanya dapat membaca, user biasa dapat memberi atau membatalkan star, Editor dapat melakukan PUT/PATCH, dan pemilik portofolio dapat membuat, mengubah, serta menghapus data.
+
+4. SessionAuthentication memakai cookie session yang otomatis dikirim browser, sehingga request mutasi memerlukan token CSRF untuk membuktikan bahwa request berasal dari aplikasi yang sah. Tanpa perlindungan ini, situs lain dapat mencoba mengirim request atas nama session pengguna. Test dengan force_authenticate tidak cukup karena metode tersebut melewati proses login berbasis session dan pemeriksaan CSRF. Karena itu, test CSRF menggunakan APIClient dengan enforce_csrf_checks=True, login(), lalu membuktikan request tanpa token ditolak dan request dengan token berhasil.
+
+AI disclosure
+
+Dalam pengerjaan Tugas 6, saya menggunakan Codex sebagai asisten diskusi dan pengerjaan untuk membantu memahami penerapan Django REST Framework, pengelolaan permission berbasis peran, pengujian API, serta integrasi Fetch API pada halaman web.
+
+Bagian yang dibantu:
+- Pembuatan endpoint API untuk menampilkan, mencari, menambah, mengubah, menghapus, serta memberi atau membatalkan star pada data Experience.
+- Pembuatan test API untuk permission, validasi input, CRUD, star, dan CSRF.
+- Integrasi halaman Experience dengan Fetch API agar dapat berinteraksi tanpa reload halaman.

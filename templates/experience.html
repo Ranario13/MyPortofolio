@@ -41,15 +41,17 @@
     </div>
 </section>
 
-{% if user.is_superuser %}
+{% if is_editor %}
     {% include "components/experience_form_modal.html" %}
 {% endif %}
 
 <script>
-    const GET_EXPERIENCE_ENDPOINT = "{% url 'main:get_experience_json' %}";
-    const CREATE_EXPERIENCE_ENDPOINT = "{% url 'main:create_experience_ajax' %}";
+    const EXPERIENCE_LIST_ENDPOINT = "{% url 'api:experience-list' %}";
+    const EXPERIENCE_DETAIL_PATTERN = "{% url 'api:experience-detail' '00000000-0000-0000-0000-000000000000' %}";
+    const EXPERIENCE_STAR_PATTERN = "{% url 'api:experience-star' '00000000-0000-0000-0000-000000000000' %}";
     const IS_SUPERUSER = "{{ user.is_superuser|yesno:'true,false' }}" === "true";
     const IS_EDITOR = "{{ is_editor|yesno:'true,false' }}" === "true";
+    const IS_AUTHENTICATED = "{{ user.is_authenticated|yesno:'true,false' }}" === "true";
     
     let fetchAbortController;
     let searchDebounceTimer;
@@ -70,8 +72,8 @@
     }
 
     function buildExperienceCard(item) {
-        const exp = item.fields;
-        const id = item.pk;
+        const exp = item;
+        const id = item.id;
         const article = document.createElement('article');
         article.className = 'experience-card';
 
@@ -81,9 +83,9 @@
             : '';
 
         let actionsHtml = '';
-        if (IS_EDITOR) {
-            const editUrl = "{% url 'main:update_experience' '00000000-0000-0000-0000-000000000000' %}".replace('00000000-0000-0000-0000-000000000000', id);
-            actionsHtml += `<a href="${editUrl}" class="button">Edit</a> `;
+        if (IS_EDITOR) actionsHtml += `<button type="button" class="button" data-action="edit" data-id="${escapeHtml(id)}">Edit</button>`;
+        if (IS_AUTHENTICATED) {
+            actionsHtml += `<button type="button" class="button button-star${exp.is_starred ? ' is-starred' : ''}" data-action="star" data-id="${escapeHtml(id)}">${exp.is_starred ? 'Unstar' : 'Star'} (${exp.star_count})</button>`;
         }
         if (IS_SUPERUSER) {
             actionsHtml += `<button type="button" onclick="deleteExperienceAjax('${id}')" class="button button-danger">Hapus</button>`;
@@ -106,7 +108,7 @@
 
         try {
             displayPageState({ showLoading: true });
-            const url = searchQuery ? `${GET_EXPERIENCE_ENDPOINT}?title=${encodeURIComponent(searchQuery)}` : GET_EXPERIENCE_ENDPOINT;
+            const url = searchQuery ? `${EXPERIENCE_LIST_ENDPOINT}?title=${encodeURIComponent(searchQuery)}` : EXPERIENCE_LIST_ENDPOINT;
             const response = await fetch(url, { headers: { 'Accept': 'application/json' }, signal: fetchAbortController.signal });
             if (!response.ok) throw new Error('Error network');
 
@@ -114,8 +116,7 @@
             if (!data || data.length === 0) {
                 displayPageState({ showEmpty: true });
             } else {
-                gridContainer.innerHTML = '';
-                data.forEach(item => gridContainer.appendChild(buildExperienceCard(item)));
+                gridContainer.replaceChildren(...data.map(buildExperienceCard));
                 displayPageState({ showGrid: true });
             }
         } catch (err) {
@@ -142,23 +143,25 @@
             submitBtn.disabled = true;
 
             try {
-                const response = await fetch(CREATE_EXPERIENCE_ENDPOINT, {
-                    method: 'POST',
-                    headers: { 'X-CSRFToken': getCookie('csrftoken') },
-                    body: new FormData(experienceForm),
+                const payload = Object.fromEntries(new FormData(experienceForm).entries());
+                if (payload.ended_at) payload.ended_at = `${payload.ended_at}T00:00:00Z`;
+                const editId = experienceForm.dataset.editId;
+                const response = await fetch(editId ? apiUrl(EXPERIENCE_DETAIL_PATTERN, editId) : EXPERIENCE_LIST_ENDPOINT, {
+                    method: editId ? 'PATCH' : 'POST',
+                    headers: { 'X-CSRFToken': getCookie('csrftoken'), 'Content-Type': 'application/json', 'Accept': 'application/json' },
+                    body: JSON.stringify(payload),
                 });
                 const result = await response.json().catch(() => ({}));
 
                 if (response.ok) {
                     experienceForm.reset();
+                    delete experienceForm.dataset.editId;
                     document.getElementById('add-experience-modal').hidePopover();
-                    showToast('Berhasil', result.message || 'Pengalaman berhasil ditambahkan!', 'success');
+                    showToast('Berhasil', editId ? 'Pengalaman berhasil diperbarui!' : 'Pengalaman berhasil ditambahkan!', 'success');
                     fetchExperiences(searchInput.value.trim());
                 } else {
-                    const errorMsgs = result.errors 
-                        ? Object.values(result.errors).flat().map(err => err.message)
-                        : [result.message || 'Gagal menambahkan data.'];
-                    showToast('Gagal', errorMsgs.join(' '), 'error');
+                    const errorMsgs = Object.values(result).flat().map(err => typeof err === 'string' ? err : err.message).join(' ');
+                    showToast('Gagal', errorMsgs || 'Gagal menambahkan data.', 'error');
                 }
             } catch (err) {
                 showToast('Gagal', 'Koneksi ke server terganggu.', 'error');
@@ -170,13 +173,13 @@
 
     async function deleteExperienceAjax(id) {
         if (!confirm('Hapus data pengalaman ini?')) return;
-        const deleteUrl = "{% url 'main:delete_experience_ajax' '00000000-0000-0000-0000-000000000000' %}".replace('00000000-0000-0000-0000-000000000000', id);
+        const deleteUrl = EXPERIENCE_DETAIL_PATTERN.replace('00000000-0000-0000-0000-000000000000', id);
 
         try {
-            const response = await fetch(deleteUrl, { method: 'POST', headers: { 'X-CSRFToken': getCookie('csrftoken') } });
-            const result = await response.json();
+            const response = await fetch(deleteUrl, { method: 'DELETE', headers: { 'X-CSRFToken': getCookie('csrftoken'), 'Accept': 'application/json' } });
+            const result = await response.json().catch(() => ({}));
             if (response.ok) {
-                showToast('Dihapus', result.message, 'success');
+                showToast('Dihapus', 'Pengalaman berhasil dihapus.', 'success');
                 fetchExperiences(searchInput.value.trim());
             } else {
                 showToast('Gagal', result.message || 'Gagal menghapus.', 'error');
@@ -185,6 +188,42 @@
             showToast('Gagal', 'Terjadi kesalahan saat menghapus.', 'error');
         }
     }
+
+    function apiUrl(pattern, id) {
+        return pattern.replace('00000000-0000-0000-0000-000000000000', id);
+    }
+
+    async function toggleExperienceStar(id) {
+        const response = await fetch(apiUrl(EXPERIENCE_STAR_PATTERN, id), {
+            method: 'POST', headers: { 'X-CSRFToken': getCookie('csrftoken'), 'Accept': 'application/json' },
+        });
+        const result = await response.json().catch(() => ({}));
+        if (!response.ok) throw new Error(Object.values(result).flat().join(' ') || 'Aksi star ditolak.');
+        fetchExperiences(searchInput.value.trim());
+    }
+
+    async function editExperience(id) {
+        const response = await fetch(apiUrl(EXPERIENCE_DETAIL_PATTERN, id), { headers: { 'Accept': 'application/json' } });
+        const item = await response.json();
+        if (!response.ok) throw new Error('Data pengalaman tidak ditemukan.');
+        const form = experienceForm;
+        form.querySelector('[name="title"]').value = item.title;
+        form.querySelector('[name="description"]').value = item.description;
+        form.querySelector('[name="category"]').value = item.category;
+        form.querySelector('[name="thumbnail"]').value = item.thumbnail || '';
+        form.querySelector('[name="ended_at"]').value = item.ended_at ? item.ended_at.slice(0, 10) : '';
+        form.dataset.editId = id;
+        document.getElementById('add-experience-modal').showPopover();
+    }
+
+    gridContainer.addEventListener('click', async function(event) {
+        const button = event.target.closest('[data-action]');
+        if (!button) return;
+        try {
+            if (button.dataset.action === 'star') await toggleExperienceStar(button.dataset.id);
+            if (button.dataset.action === 'edit') await editExperience(button.dataset.id);
+        } catch (error) { showToast('Gagal', error.message, 'error'); }
+    });
 
     fetchExperiences();
 </script>

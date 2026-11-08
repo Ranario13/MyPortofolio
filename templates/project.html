@@ -51,7 +51,7 @@
         </section>
     </main>
 
-    {% if user.is_superuser %}
+    {% if user.is_superuser or is_editor %}
         {% include "components/project_form_modal.html" %}
     {% endif %}
     
@@ -62,6 +62,7 @@ const DETAIL_PROJECT_ENDPOINT = "{% url 'api:project-detail' '00000000-0000-0000
 const STAR_PROJECT_ENDPOINT = "{% url 'api:project-star' '00000000-0000-0000-0000-000000000000' %}";
 const IS_SUPERUSER = "{{ user.is_superuser|yesno:'true,false' }}" === "true";
 const IS_AUTHENTICATED = "{{ user.is_authenticated|yesno:'true,false' }}" === "true";
+const IS_EDITOR = "{{ is_editor|yesno:'true,false' }}" === "true";
 
 const loadingState = document.getElementById('loading');
 const errorState = document.getElementById('error');
@@ -114,11 +115,14 @@ function buildProjectCardElement(project) {
     const remove = IS_SUPERUSER
         ? `<button type="button" class="button button-danger" data-action="delete"
             data-id="${escapeHtml(project.id)}">Delete</button>` : '';
+    const edit = IS_EDITOR
+        ? `<button type="button" class="button" data-action="edit"
+            data-id="${escapeHtml(project.id)}">Edit</button>` : '';
     article.innerHTML = `${image}<h2>${escapeHtml(project.title)}</h2>
         <span class="experience-category">${escapeHtml(project.tech_stack)}</span>
         <p class="experience-description">${escapeHtml(project.description)}</p>
         <div class="project-card-actions"><div class="project-actions">
-        ${link}${star}${remove}</div></div>`;
+        ${link}${edit}${star}${remove}</div></div>`;
     return article;
 }
 
@@ -171,16 +175,21 @@ async function addProject(event) {
     button.disabled = true;
     try {
         const fields = new FormData(projectForm);
+        const editId = projectForm.dataset.editId;
         const payload = Object.fromEntries([
             'title', 'description', 'tech_stack', 'project_url', 'project_image_url',
         ].map(name => [name, fields.get(name)]));
-        await writeProject(BASE_PROJECTS_ENDPOINT, 'POST', payload);
+        await writeProject(
+            editId ? projectEndpoint(DETAIL_PROJECT_ENDPOINT, editId) : BASE_PROJECTS_ENDPOINT,
+            editId ? 'PATCH' : 'POST', payload,
+        );
         projectForm.reset();
+        delete projectForm.dataset.editId;
         document.getElementById('add-project-modal').hidePopover();
-        showToast('Success', 'Project created.', 'success');
+        showToast('Success', editId ? 'Project updated.' : 'Project created.', 'success');
         await fetchProjects(searchInput.value.trim());
     } catch (error) {
-        showToast('Could not create project', error.message, 'error');
+        showToast('Could not save project', error.message, 'error');
     } finally {
         button.disabled = false;
     }
@@ -192,6 +201,25 @@ gridContainer.addEventListener('click', async function(event) {
     const button = event.target.closest('button[data-action]');
     if (!button || button.disabled) return;
     const action = button.dataset.action;
+    if (action === 'edit') {
+        try {
+            const response = await fetch(projectEndpoint(DETAIL_PROJECT_ENDPOINT, button.dataset.id), {
+                headers: { Accept: 'application/json' },
+            });
+            const project = await response.json();
+            if (!response.ok) throw new Error(apiErrorMessage(project, response.status));
+            projectForm.querySelector('[name="title"]').value = project.title;
+            projectForm.querySelector('[name="description"]').value = project.description;
+            projectForm.querySelector('[name="tech_stack"]').value = project.tech_stack;
+            projectForm.querySelector('[name="project_url"]').value = project.project_url || '';
+            projectForm.querySelector('[name="project_image_url"]').value = project.project_image_url || '';
+            projectForm.dataset.editId = button.dataset.id;
+            document.getElementById('add-project-modal').showPopover();
+        } catch (error) {
+            showToast('Request failed', error.message, 'error');
+        }
+        return;
+    }
     if (action === 'delete' && !window.confirm('Delete this project?')) return;
     button.disabled = true;
     try {
